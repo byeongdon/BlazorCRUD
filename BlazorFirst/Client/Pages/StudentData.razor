@@ -1,0 +1,74 @@
+﻿@page "/studentdata"
+@using BlazorFirst.Shared
+@inject HttpClient Http
+@inject NavigationManager UriHelper
+
+
+<h1>학생 테이블</h1>
+
+<hr />
+
+<MatButton Outlined="true" @onclick="@Insert" Icon="note_add">추가</MatButton>
+
+<hr />
+<br />
+
+<table class="table"> 
+    <thead>
+        <tr>
+            <th>Grade</th>
+            <th>CClass</th>
+            <th>No</th>
+            <th>Name</th>
+            <th>Score</th>
+            <th>수정</th>
+            <th>삭제</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var students in student)
+        {
+            <tr>
+                <td>@students.Grade</td>
+                <td>@students.CClass</td>
+                <td>@students.NO</td>
+                <td>@students.Name</td>
+                <td>@students.Score</td>
+                <td>
+                    <MatButton Outlined="true" @onclick="@Update" Icon="edit" Name="UpdateButton">수정</MatButton>
+                </td>
+                <td>
+                    <MatButton Outlined="true" @onclick="@(()=>Delete(students.NO))" Icon="restore_from_trash">삭제</MatButton>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+
+    List<StudentChanged> student = new List<StudentChanged>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        student = await Http.GetFromJsonAsync<List<StudentChanged>>("/api/Student");
+    }
+
+    public void Insert()
+    {
+        UriHelper.NavigateTo("CreateStudent");
+    }
+
+    public void Update()
+    {
+        UriHelper.NavigateTo("/editdata");
+    }
+
+    public void Delete(string value)
+    {
+        Http.DeleteAsync("/api/Student/" + value);
+        
+    }
+
+}

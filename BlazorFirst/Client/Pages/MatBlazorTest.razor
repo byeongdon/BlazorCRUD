@@ -1,0 +1,170 @@
+﻿@page "/MatBlazorTest"
+
+<h1>학생 테이블</h1>
+
+<MatButton Outlined="true" @onclick="@(e => OpenDialog(false))">Add Employee</MatButton>
+
+<hr />
+
+<MatTable Items="@employees" class="mat-elevation-z5" AllowSelection="true" SelectionChanged="SelectionChangedEvent" FilterByColumnName="Name" ShowPaging="false">
+    <MatTableHeader>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Job&nbsp;Exp.</th>
+        <th>Joining&nbsp;Date</th>
+        <th>Action</th>
+    </MatTableHeader>
+    <MatTableRow>
+        <td>@context.EmployeeID</td>
+        <td>@context.Name</td>
+        <td>@context.Gender</td>
+        <td>@context.YearOfExperience</td>
+        <td>@context.JoiningDate.ToString("yyyy-MM-dd")</td>
+        <td>
+            <MatButton Raised="true" @onclick="@(e => OpenDialog(true))" Icon="edit" title="Edit"></MatButton>
+            <MatButton Raised="true" @onclick="DeleteEmployee" Icon="restore_from_trash" title="Delete"></MatButton>
+        </td>
+    </MatTableRow>
+</MatTable>
+
+<MatDialog @bind-IsOpen="@IsDialogIsOpen">
+    <MatDialogTitle>Add/Edit</MatDialogTitle>
+    <MatDialogContent>
+        <MatTextField Label="Name" @bind-Value="@employee.Name"></MatTextField>
+        <MatRadioGroup @bind-Value="@employee.Gender" TValue="string">
+            <MatRadioButton Value="@("Male")" TValue="string">Male</MatRadioButton>
+            <MatRadioButton Value="@("Female")" TValue="string">Female</MatRadioButton>
+        </MatRadioGroup>
+        <MatDatePicker Label="Joining Date" @bind-Value="@employee.JoiningDate" lo></MatDatePicker>
+        <MatNumericUpDownField Label="Job Exp." @bind-Value="@employee.YearOfExperience" DecimalPlaces=0 Minimum=0 Maximum=100></MatNumericUpDownField>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="OkClick">Add</MatButton>
+        <MatButton OnClick="CloseDialog">Close</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+<MatSnackbar @bind-IsOpen="@IsSnackBar" Leading="true">
+    <MatSnackbarContent>Deleted</MatSnackbarContent>
+    <MatSnackbarActions>
+        <MatButton Raised="true" @onclick="UndoDelete">Undo</MatButton>
+    </MatSnackbarActions>
+</MatSnackbar>
+
+@code {
+    Employee employee = new Employee();
+    Employee selectedEmp = null;
+    Employee tempEmp = null;
+    int Idx = -1;
+    bool IsDelete = false;
+    bool IsDialogIsOpen = false;
+    bool IsEdit = false;
+    bool IsSnackBar = false;
+
+    List<Employee> employees = new List<Employee>()
+{
+        new Employee(1, "홍길동", "Male", Convert.ToDateTime("2020-01-01"), 4),
+        new Employee(2, "홍길서", "Female", Convert.ToDateTime("2020-02-02"), 2),
+        new Employee(3, "홍길남", "Male", Convert.ToDateTime("2020-03-03"), 3)
+    };
+
+    public class Employee
+    {
+        public int EmployeeID { get; set; }
+        public string Name { get; set; }
+        public string Gender { get; set; }
+        public DateTime JoiningDate { get; set; }
+        public int YearOfExperience { get; set; }
+
+        public Employee() { }
+        public Employee(int employeeID, string name, string gender, DateTime joiningDate, int yearOfExperience)
+        {
+            EmployeeID = employeeID;
+            Name = name;
+            Gender = gender;
+            JoiningDate = joiningDate;
+            YearOfExperience = yearOfExperience;
+        }
+    }
+
+    private void AddEmployee(Employee emp)
+    {
+        emp.EmployeeID = employees.Count + 1;
+        employees.Add(emp);
+    }
+
+    private void EditEmployee(Employee emp)
+    {
+        if (emp != null && emp.EmployeeID > 0)
+        {
+            int index = employees.FindIndex(a => a.EmployeeID == emp.EmployeeID);
+            employees.RemoveAll(x => x.EmployeeID == emp.EmployeeID);
+            employees.Insert(index, emp);
+        }
+    }
+
+    private void DeleteEmployee()
+    {
+        IsDelete = true;
+        if (employee != null && employee.EmployeeID > 0)
+        {
+            Idx = employees.FindIndex(a => a.EmployeeID == employee.EmployeeID);
+            tempEmp = new Employee(employee.EmployeeID, employee.Name, employee.Gender, employee.JoiningDate, employee.YearOfExperience);
+            IsSnackBar = true;
+            employees.Remove(employee);
+            IsDelete = false;
+            this.StateHasChanged();
+        }
+    }
+
+    private void UndoDelete()
+    {
+        if (tempEmp != null && Idx > 0)
+        {
+            employees.Insert(Idx, tempEmp);
+            tempEmp = null;
+            Idx = -1;
+        }
+    }
+
+    private void OpenDialog(bool isEdit)
+    {
+        IsEdit = isEdit;
+        if (!isEdit) employee = new Employee();
+        IsDialogIsOpen = true;
+    }
+
+    private void OkClick()
+    {
+        IsDialogIsOpen = false;
+        if (!IsEdit) this.AddEmployee(employee);
+        else this.EditEmployee(employee);
+    }
+
+    private void CloseDialog()
+    {
+        IsDialogIsOpen = false;
+        if (selectedEmp != null)
+        {
+            employee = selectedEmp;
+            this.EditEmployee(selectedEmp);
+        }
+    }
+
+    private void SelectionChangedEvent(object emp)
+    {
+        var currentEmp = (Employee)emp;
+        if (currentEmp != null)
+        {
+            employee = currentEmp;
+            selectedEmp = new Employee(currentEmp.EmployeeID, currentEmp.Name, currentEmp.Gender, currentEmp.JoiningDate, currentEmp.YearOfExperience);
+        }
+        else
+        {
+            selectedEmp = new Employee();
+        }
+
+        if (IsDelete) this.DeleteEmployee();
+    }
+}

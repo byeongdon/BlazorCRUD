@@ -1,0 +1,85 @@
+﻿@page "/editdata"
+@inject HttpClient Http
+@inject NavigationManager UriHelper
+
+<h3>수정</h3>
+
+<form>
+    <div class="row"> 
+        <div class="col-md-8">
+            <br />
+            <br />
+            <div class="form-group">
+                <label for="Grade" class="control-label">Grade</label>
+                <hr />
+                <MatTextField Label="Grade" @bind-Value="@student.Grade"></MatTextField>
+            </div> 
+
+            <br />
+            <br />
+
+            <div class="form-group">
+                <label for="CClass" class="control-label">CClass</label>
+                <hr />
+                <MatTextField Label="CClass" @bind-Value="@student.CClass"></MatTextField>
+            </div>
+
+            <br />
+            <br />
+
+            <div class="form-group">
+                <label for="NO" class="control-label">NO</label>
+                <hr />
+                <MatTextField Label="NO" @bind-Value="@student.NO"></MatTextField>
+            </div>
+
+            <br />
+            <br />
+
+            <div class="form-group">
+                <label for="Name" class="control-label">Name</label>
+                <hr />
+                <MatTextField Label="Name" @bind-Value="@student.Name"></MatTextField>
+            </div>
+
+            <br />
+            <br />
+
+            <div class="form-group">
+                <label for="Score" class="control-label">Score</label>
+                <hr />
+                <MatTextField Label="Score" @bind-Value="@student.Score"></MatTextField>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <br />
+    <br />
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <MatButton Raised="true" @onclick="@Edit" Icon="done">수정</MatButton>
+                <MatButton Unelevated="true" @onclick="@Cancel" Icon="done">취소</MatButton>
+
+            </div>
+        </div>
+    </div>
+</form>
+
+@code {
+    StudentChanged student = new StudentChanged();
+
+    protected void Edit()
+    {
+        Http.PutAsJsonAsync("/api/Student", student);
+        UriHelper.NavigateTo("Studentdata");
+    }
+
+    public void Cancel()
+    {
+        UriHelper.NavigateTo("Studentdata");
+    }
+
+}
